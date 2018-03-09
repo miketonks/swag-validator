@@ -54,7 +54,7 @@ $ curl http://localhost:8089/swagger | jq
 ...
 ```
 
-and Validate your API requests automatically based on this definition.
+Validate your API requests automatically based on this definition.
 
 ```
 curl http://localhost:8089/pet/123
