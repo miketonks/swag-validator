@@ -1,5 +1,7 @@
 # Swagger Validation Middleware
 
+Swagger generation and validation for gin server.
+
 Define API Specification using code:
 
 ```
@@ -18,15 +20,23 @@ post := endpoint.New("post", "/pet", "Add a new pet to the store",
 )
 ```
 
-Generate Swagger Documentation automatically:
+Add the middleware to your server:
+
+```
+r.GET("/swagger", gin.WrapH(api.Handler(enableCors)))
+
+r.Use(swag_validator.SwaggerValidator(api))
+```
+
+Generats Swagger Documentation automatically:
 
 ```
 $ curl http://localhost:8089/swagger | jq
 {
   "swagger": "2.0",
   "info": {
-    "title": "Your API Title",
-    "description": "Describe your API",
+    "title": "Petstore",
+    "description": "Sample Petstore API",
   },
   "basePath": "/",
   "paths": {
@@ -48,4 +58,4 @@ and Validate your API requests automatically based on this definition.
 
 # Sample
 
-See /sample for fully working example and test cases.
+See /sample for working example and test cases.
