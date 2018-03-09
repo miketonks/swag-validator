@@ -2,6 +2,8 @@
 
 Swagger generation and validation for gin server.
 
+## 1) Definition
+
 Define API Specification using code:
 
 ```
@@ -20,6 +22,8 @@ post := endpoint.New("post", "/pet", "Add a new pet to the store",
 )
 ```
 
+## Middleware
+
 Add the middleware to your server:
 
 ```
@@ -28,7 +32,9 @@ r.GET("/swagger", gin.WrapH(api.Handler(enableCors)))
 r.Use(swag_validator.SwaggerValidator(api))
 ```
 
-Generats Swagger Documentation automatically:
+## Swagger Docs
+
+Generates Swagger Documentation automatically:
 
 ```
 $ curl http://localhost:8089/swagger | jq
@@ -53,6 +59,8 @@ $ curl http://localhost:8089/swagger | jq
           },
 ...
 ```
+
+## Validation
 
 Validate your API requests automatically based on this definition.
 
