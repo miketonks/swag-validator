@@ -75,3 +75,11 @@ curl http://localhost:8089/pet/foo
 # Sample
 
 See /sample for working example and test cases.
+
+# Credits and Thanks
+
+Thanks to savaki and xeipuuv for their awesome libraries that make this possible!
+
+swag - https://github.com/savaki/swag
+
+gojsonschema - https://github.com/xeipuuv/gojsonschema
