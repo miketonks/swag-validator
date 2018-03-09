@@ -2,7 +2,7 @@
 
 Swagger generation and validation for gin server.
 
-## 1) Definition
+## Definition
 
 Define API Specification using code:
 
