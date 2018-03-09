@@ -78,8 +78,10 @@ See /sample for working example and test cases.
 
 # Credits and Thanks
 
-Thanks to savaki and xeipuuv for their awesome libraries that make this possible!
+Thanks to savaki, xeipuuv, and of course the gin team, for their awesome libraries that make this possible!
 
-swag - https://github.com/savaki/swag
+swag: https://github.com/savaki/swag
 
-gojsonschema - https://github.com/xeipuuv/gojsonschema
+gojsonschema: https://github.com/xeipuuv/gojsonschema
+
+gin: https://github.com/gin-gonic/gin
