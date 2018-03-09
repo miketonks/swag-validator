@@ -22,9 +22,6 @@ Generate Swagger Documentation automatically:
 
 ```
 $ curl http://localhost:8089/swagger | jq
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100  1950  100  1950    0     0  1386k      0 --:--:-- --:--:-- --:--:-- 1904k
 {
   "swagger": "2.0",
   "info": {
