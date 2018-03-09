@@ -56,6 +56,14 @@ $ curl http://localhost:8089/swagger | jq
 
 and Validate your API requests automatically based on this definition.
 
+```
+curl http://localhost:8089/pet/123
+{"id":0,"uuid":"00000000-0000-0000-0000-000000000000","category":{"category":0,"name":""},"name":"Ollie","photoUrls":null,"tags":null,"age":0,"grumpy":false,"dob":"00
+
+curl http://localhost:8089/pet/foo
+{"error":["petId: Invalid type. Expected: integer, given: string"]}
+```
+
 # Sample
 
 See /sample for working example and test cases.
