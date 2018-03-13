@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/miketonks/swag/swagger"
@@ -17,20 +18,42 @@ import (
 
 // RequestSchema ...
 type RequestSchema struct {
-	Title                string                    `json:"title"`
-	Type                 string                    `json:"type"`
-	Summary              string                    `json:"summary"`
-	Properties           map[string]interface{}    `json:"properties"`
-	Required             []string                  `json:"required"`
-	Definitions          map[string]swagger.Object `json:"definitions"`
-	AdditionalProperties bool                      `json:"additionalProperties"`
+	Title                string                      `json:"title"`
+	Type                 string                      `json:"type"`
+	Summary              string                      `json:"summary"`
+	Properties           map[string]interface{}      `json:"properties"`
+	Required             []string                    `json:"required"`
+	Definitions          map[string]SchemaDefinition `json:"definitions"`
+	AdditionalProperties bool                        `json:"additionalProperties"`
 }
 
 // RequestParameter ...
 type RequestParameter struct {
-	Name   string `json:"name,omitempty"`
-	Type   string `json:"type,omitempty"`
-	Format string `json:"format,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Type     string `json:"type,omitempty"`
+	Format   string `json:"format,omitempty"`
+	Nullable bool   `json:"nullable,omitempty"`
+}
+
+// SchemaDefinition ...
+type SchemaDefinition struct {
+	Name                 string                    `json:"-"`
+	Type                 string                    `json:"type"`
+	Format               string                    `json:"format,omitempty"`
+	Required             []string                  `json:"required,omitempty"`
+	Properties           map[string]SchemaProperty `json:"properties,omitempty"`
+	AdditionalProperties bool                      `json:"additionalProperties"`
+}
+
+// SchemaProperty ...
+type SchemaProperty struct {
+	Type        []string       `json:"type,omitempty"`
+	Description string         `json:"description,omitempty"`
+	Enum        []string       `json:"enum,omitempty"`
+	Format      string         `json:"format,omitempty"`
+	Ref         string         `json:"$ref,omitempty"`
+	Example     string         `json:"example,omitempty"`
+	Items       *swagger.Items `json:"items,omitempty"`
 }
 
 // SwaggerValidator middleware
@@ -50,7 +73,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			p.Connect} {
 			if e != nil {
 				schema := buildRequestSchema(e)
-				schema.Definitions = api.Definitions
+				schema.Definitions = buildSchemaDefinitions(api)
 				schemaLoader := gojsonschema.NewGoLoader(schema)
 
 				handler := nameOfFunction(e.Handler)
@@ -83,13 +106,13 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			var body interface{}
 			b, err := ioutil.ReadAll(c.Request.Body)
 			if err != nil {
-				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Failed to read request body"})
 				return
 			}
 			err = json.Unmarshal(b, &body)
 			// TODO Consider different error cases: Empty Body, Invalid JSON, Form Data
 			if err != nil {
-				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid json format"})
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid json format"})
 				return
 			}
 			document["body"] = body
@@ -101,7 +124,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 
 		result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 		if err != nil {
-			fmt.Printf("ERROR: %s", err)
+			//fmt.Printf("ERROR: %s", err)
 			c.Next()
 
 		} else if result.Valid() {
@@ -115,7 +138,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 				// Err implements the ResultError interface
 				errors = append(errors, fmt.Sprintf("%s", err))
 			}
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": errors})
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": strings.Join(errors, "\n")})
 		}
 	}
 }
@@ -166,12 +189,44 @@ func buildRequestSchema(e *swagger.Endpoint) *RequestSchema {
 		} else if p.Name != "" {
 
 			r.Properties[p.Name] = RequestParameter{
-				Name:   p.Name,
-				Type:   p.Type,
-				Format: p.Format,
+				Name:     p.Name,
+				Type:     p.Type,
+				Format:   p.Format,
+				Nullable: p.Nullable,
 			}
 		}
 	}
 
 	return &r
+}
+
+func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
+	defs := map[string]SchemaDefinition{}
+	for _, d := range api.Definitions {
+		schemaDef := SchemaDefinition{
+			Name:                 d.Name,
+			Type:                 d.Type,
+			Format:               d.Format,
+			Required:             d.Required,
+			Properties:           map[string]SchemaProperty{},
+			AdditionalProperties: d.AdditionalProperties,
+		}
+		for k, p := range d.Properties {
+			sp := SchemaProperty{
+				Type:        []string{p.Type},
+				Description: p.Description,
+				Enum:        p.Enum,
+				Format:      p.Format,
+				Ref:         p.Ref,
+				Example:     p.Example,
+				Items:       p.Items,
+			}
+			if p.Nullable {
+				sp.Type = append(sp.Type, "null")
+			}
+			schemaDef.Properties[k] = sp
+		}
+		defs[d.Name] = schemaDef
+	}
+	return defs
 }
