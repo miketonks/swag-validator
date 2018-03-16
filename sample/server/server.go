@@ -9,7 +9,6 @@ import (
 	"github.com/miketonks/swag-validator"
 	"github.com/miketonks/swag/endpoint"
 	"github.com/miketonks/swag/swagger"
-	uuid "github.com/satori/go.uuid"
 )
 
 // Category example from the swagger pet store
@@ -21,12 +20,12 @@ type Category struct {
 // Pet example from the swagger pet store
 type Pet struct {
 	ID          int64        `json:"id"`
-	UUID        uuid.UUID    `json:"uuid"`
+	UUID        swagger.UUID `json:"uuid"`
 	Category    Category     `json:"category"`
 	Name        string       `json:"name" binding:"required"`
 	PhotoUrls   []string     `json:"photoUrls"`
 	Tags        []string     `json:"tags"`
-	Age         float64      `json:"age"`
+	Age         *float64     `json:"age"`
 	Grumpy      bool         `json:"grumpy"`
 	DateOfBirth time.Time    `json:"dob"`
 	Tm          swagger.Time `json:"tm"`
@@ -54,13 +53,13 @@ func SetupAPI() *swagger.API {
 		endpoint.Handler(PostPet),
 		endpoint.Description("Additional information on adding a pet to the store"),
 		endpoint.Body(Pet{}, "Pet object that needs to be added to the store", true),
-		endpoint.FormData("upfile", "file", "", "file to upload", true),
+		endpoint.FormData("upfile", "file", "", "file to upload", false),
 		endpoint.Response(http.StatusOK, Pet{}, "Successfully added pet"),
 		endpoint.Tags("petstore", "pet"),
 	)
 	get := endpoint.New("get", "/pet/{petId}", "Find pet by ID",
 		endpoint.Handler(GetPet),
-		endpoint.Path("petId", "integer", "", "ID of pet to return", true),
+		endpoint.Path("petId", "integer", "", "ID of pet to return"),
 		endpoint.Query("foo", "integer", "", "Some foo", false),
 		endpoint.Response(http.StatusOK, Pet{}, "successful operation", endpoint.Header(
 			"x-custom-header", "string", "integer", "custom number")),

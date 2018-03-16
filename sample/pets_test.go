@@ -66,6 +66,26 @@ func TestPostPet(t *testing.T) {
 
 	assert.Equal(t, 400, resp.Code)
 	assert.Contains(t, resp.Body.String(), "Invalid type. Expected: boolean, given: string")
+
+	validDate := `{"name": "ollie", "dt": "2018-04-01"}`
+	resp = postStr(t, router, "/pet", validDate)
+	assert.Equal(t, 200, resp.Code)
+
+	invalidDate := `{"name": "ollie", "dt": "2018-44-01"}`
+	resp = postStr(t, router, "/pet", invalidDate)
+
+	assert.Equal(t, 400, resp.Code)
+	assert.Contains(t, resp.Body.String(), "month out of range")
+
+	validTime := `{"name": "ollie", "tm": "12:15:00"}`
+	resp = postStr(t, router, "/pet", validTime)
+	assert.Equal(t, 200, resp.Code)
+
+	invalidTime := `{"name": "ollie", "tm": "12:15:99"}`
+	resp = postStr(t, router, "/pet", invalidTime)
+
+	assert.Equal(t, 400, resp.Code)
+	assert.Contains(t, resp.Body.String(), "second out of range")
 }
 
 func TestNotFound(t *testing.T) {

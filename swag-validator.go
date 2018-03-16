@@ -138,6 +138,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 				// Err implements the ResultError interface
 				errors = append(errors, fmt.Sprintf("%s", err))
 			}
+			//fmt.Printf("The document is not valid. see errors : %+v\n", errors)
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": strings.Join(errors, "\n")})
 		}
 	}
@@ -188,12 +189,18 @@ func buildRequestSchema(e *swagger.Endpoint) *RequestSchema {
 
 		} else if p.Name != "" {
 
-			r.Properties[p.Name] = RequestParameter{
+			param := RequestParameter{
 				Name:     p.Name,
 				Type:     p.Type,
 				Format:   p.Format,
 				Nullable: p.Nullable,
 			}
+			// for validation purposes, file can be treated as string type
+			if p.Type == "file" {
+				param.Type = "string"
+			}
+
+			r.Properties[p.Name] = param
 		}
 	}
 
