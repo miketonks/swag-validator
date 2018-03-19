@@ -16,6 +16,8 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+const MaxMemory = 1 * 1024 * 1024
+
 // RequestSchema ...
 type RequestSchema struct {
 	Title                string                      `json:"title"`
@@ -99,10 +101,24 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			document[k] = coerce(v[0])
 		}
 
-		// TODO Maybe c.ContentType(), but it's nice to assume json as default
+		// For muiltipart form, handle params and file uploads
+		if c.ContentType() == "multipart/form-data" {
+			r := c.Request
+			r.ParseMultipartForm(MaxMemory)
 
-		// read the response body to a variable
-		if c.Request.ContentLength > 0 {
+			for k, v := range c.Request.PostForm {
+				document[k] = coerce(v[0])
+			}
+			if r.MultipartForm != nil && r.MultipartForm.File != nil {
+				for k := range r.MultipartForm.File {
+					document[k] = "x"
+				}
+			}
+
+		} else if c.Request.ContentLength > 0 {
+			// For all other types parse body as json, if possible
+
+			// read the response body to a variable
 			var body interface{}
 			b, err := ioutil.ReadAll(c.Request.Body)
 			if err != nil {
