@@ -1,4 +1,4 @@
-package swag_validator
+package swagvalidator
 
 import (
 	"bytes"
@@ -16,6 +16,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+// MaxMemory ...
 const MaxMemory = 1 * 1024 * 1024
 
 // RequestSchema ...
