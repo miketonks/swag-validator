@@ -92,14 +92,29 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			c.Next()
 			return
 		}
+		ref, _ := schemaLoader.LoadJSON()
+		properties, _ := ref.(map[string]interface{})["properties"].(map[string]interface{})
+
 		document := map[string]interface{}{}
 
 		for _, p := range c.Params {
-			document[p.Key] = coerce(p.Value)
+			document[p.Key] = coerce(p.Value, "", "")
 		}
 		for k, v := range c.Request.URL.Query() {
-			// TODO Consider if we need to support multiple param values
-			document[k] = coerce(v[0])
+			valueType := ""
+			valueFormat := ""
+			prop, found := properties[k]
+			if found {
+				t, found := prop.(map[string]interface{})["type"]
+				if found {
+					valueType = t.(string)
+				}
+				f, found := prop.(map[string]interface{})["format"]
+				if found {
+					valueFormat = f.(string)
+				}
+			}
+			document[k] = coerce(v[0], valueType, valueFormat)
 		}
 
 		// For muiltipart form, handle params and file uploads
@@ -108,7 +123,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			r.ParseMultipartForm(MaxMemory)
 
 			for k, v := range c.Request.PostForm {
-				document[k] = coerce(v[0])
+				document[k] = coerce(v[0], "", "")
 			}
 			if r.MultipartForm != nil && r.MultipartForm.File != nil {
 				for k := range r.MultipartForm.File {
@@ -161,11 +176,39 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 	}
 }
 
-func coerce(value string) interface{} {
-	// TODO Add other types, float, bool.. etc
-	i, err := strconv.Atoi(value)
-	if err == nil {
-		return i
+// Data types are defined here: https://swagger.io/specification/#dataTypes
+func coerce(value string, valueType string, valueFormat string) interface{} {
+	switch valueType {
+	case "integer":
+		bitSize := 32
+		if valueFormat == "int64" {
+			bitSize = 64
+		}
+		v, err := strconv.ParseInt(value, 10, bitSize)
+		if err == nil {
+			return v
+		}
+	case "number":
+		bitSize := 32
+		if valueFormat == "double" {
+			bitSize = 64
+		}
+		v, err := strconv.ParseFloat(value, bitSize)
+		if err == nil {
+			return v
+		}
+	case "string":
+		if valueFormat == "byte" {
+			return []byte(value)
+		}
+		return value
+	case "boolean":
+		v, err := strconv.ParseBool(value)
+		if err == nil {
+			return v
+		}
+	default:
+		return value
 	}
 
 	return value
