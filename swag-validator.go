@@ -291,6 +291,12 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 			if p.Nullable {
 				sp.Type = append(sp.Type, "null")
 			}
+
+			// for json.RawMessage
+			if p.GoType.Kind() == reflect.Uint8 && p.Type == "array" {
+				sp.Type = []string{"raw_message"}
+			}
+
 			schemaDef.Properties[k] = sp
 		}
 		defs[d.Name] = schemaDef
