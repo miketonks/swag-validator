@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kazyshr/gojsonschema"
 	"github.com/miketonks/swag/swagger"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 // MaxMemory ...
