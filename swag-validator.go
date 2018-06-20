@@ -293,7 +293,7 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 			}
 
 			// for json.RawMessage
-			if p.GoType.Kind() == reflect.Uint8 && p.Type == "array" {
+			if p.GoType.PkgPath() == "encoding/json" && p.GoType.Name() == "RawMessage" {
 				sp.Type = []string{"raw_message"}
 			}
 
