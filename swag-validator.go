@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kazyshr/gojsonschema"
 	"github.com/miketonks/swag/swagger"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 // MaxMemory ...
@@ -291,6 +291,12 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 			if p.Nullable {
 				sp.Type = append(sp.Type, "null")
 			}
+
+			// for json.RawMessage
+			if p.GoType.PkgPath() == "encoding/json" && p.GoType.Name() == "RawMessage" {
+				sp.Type = []string{"raw_message"}
+			}
+
 			schemaDef.Properties[k] = sp
 		}
 		defs[d.Name] = schemaDef
