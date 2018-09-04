@@ -114,7 +114,13 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 					valueFormat = f.(string)
 				}
 			}
-			document[k] = coerce(v[0], valueType, valueFormat)
+			// if parameter has multiple values, pass it as array
+			// for now we only support array of strings
+			if len(v) > 1 {
+				document[k] = v
+			} else {
+				document[k] = coerce(v[0], valueType, valueFormat)
+			}
 		}
 
 		// For muiltipart form, handle params and file uploads
