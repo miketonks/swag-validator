@@ -171,13 +171,19 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 
 		} else {
 			//fmt.Printf("The document is not valid. see errors :\n")
-			errors := []string{}
+			errors := map[string]string{}
 			for _, err := range result.Errors() {
 				// Err implements the ResultError interface
-				errors = append(errors, fmt.Sprintf("%s", err))
+				kv := strings.Split(err.String(), ": ")
+				if len(kv) > 1 {
+					errors[kv[0]] = kv[1]
+				}
 			}
 			//fmt.Printf("The document is not valid. see errors : %+v\n", errors)
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": strings.Join(errors, "\n")})
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"message": "Validation error",
+				"details": errors,
+			})
 		}
 	}
 }
