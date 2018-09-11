@@ -32,10 +32,11 @@ type RequestSchema struct {
 
 // RequestParameter ...
 type RequestParameter struct {
-	Name     string `json:"name,omitempty"`
-	Type     string `json:"type,omitempty"`
-	Format   string `json:"format,omitempty"`
-	Nullable bool   `json:"nullable,omitempty"`
+	Name     string         `json:"name,omitempty"`
+	Type     string         `json:"type,omitempty"`
+	Format   string         `json:"format,omitempty"`
+	Items    *swagger.Items `json:"items,omitempty"`
+	Nullable bool           `json:"nullable,omitempty"`
 }
 
 // SchemaDefinition ...
@@ -101,6 +102,13 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			document[p.Key] = coerce(p.Value, "", "")
 		}
 		for k, v := range c.Request.URL.Query() {
+			// if parameter has multiple values, pass it as array
+			// for now we only support array of strings
+			if len(v) > 1 {
+				document[k] = v
+				continue
+			}
+
 			valueType := ""
 			valueFormat := ""
 			prop, found := properties[k]
@@ -114,10 +122,14 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 					valueFormat = f.(string)
 				}
 			}
-			// if parameter has multiple values, pass it as array
-			// for now we only support array of strings
-			if len(v) > 1 {
-				document[k] = v
+
+			if valueType == "array" {
+				items := strings.Split(v[0], ",")
+				values := []string{}
+				for _, item := range items {
+					values = append(values, strings.TrimSpace(item))
+				}
+				document[k] = values
 			} else {
 				document[k] = coerce(v[0], valueType, valueFormat)
 			}
@@ -162,15 +174,15 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 
 		result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 		if err != nil {
-			//fmt.Printf("ERROR: %s", err)
+			// fmt.Printf("ERROR: %s", err)
 			c.Next()
 
 		} else if result.Valid() {
-			//fmt.Printf("The document is valid\n")
+			// fmt.Printf("The document is valid\n")
 			c.Next()
 
 		} else {
-			//fmt.Printf("The document is not valid. see errors :\n")
+			// fmt.Printf("The document is not valid. see errors :\n")
 			errors := map[string]string{}
 			for _, err := range result.Errors() {
 				// Err implements the ResultError interface
@@ -179,7 +191,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 					errors[kv[0]] = kv[1]
 				}
 			}
-			//fmt.Printf("The document is not valid. see errors : %+v\n", errors)
+			// fmt.Printf("The document is not valid. see errors : %+v\n", errors)
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"message": "Validation error",
 				"details": errors,
@@ -266,6 +278,7 @@ func buildRequestSchema(e *swagger.Endpoint) *RequestSchema {
 				Type:     p.Type,
 				Format:   p.Format,
 				Nullable: p.Nullable,
+				Items:    p.Items,
 			}
 			// for validation purposes, file can be treated as string type
 			if p.Type == "file" {
