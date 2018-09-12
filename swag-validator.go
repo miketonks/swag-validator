@@ -186,7 +186,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			errors := map[string]string{}
 			for _, err := range result.Errors() {
 				// Err implements the ResultError interface
-				kv := strings.Split(err.String(), ": ")
+				kv := strings.SplitN(err.String(), ": ", 2)
 				if len(kv) > 1 {
 					errors[kv[0]] = kv[1]
 				}
