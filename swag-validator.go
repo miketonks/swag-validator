@@ -102,37 +102,51 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			document[p.Key] = coerce(p.Value, "", "")
 		}
 		for k, v := range c.Request.URL.Query() {
-			// if parameter has multiple values, pass it as array
-			// for now we only support array of strings
-			if len(v) > 1 {
-				document[k] = v
-				continue
-			}
-
 			valueType := ""
 			valueFormat := ""
-			prop, found := properties[k]
+			elemType := ""
+			elemFormat := ""
+			propI, found := properties[k]
 			if found {
-				t, found := prop.(map[string]interface{})["type"]
+				prop := propI.(map[string]interface{})
+				t, found := prop["type"]
 				if found {
 					valueType = t.(string)
 				}
-				f, found := prop.(map[string]interface{})["format"]
+				f, found := prop["format"]
 				if found {
 					valueFormat = f.(string)
 				}
+				if items, ok := prop["items"]; ok {
+					if t, ok := items.(map[string]interface{})["type"]; ok {
+						elemType = t.(string)
+					}
+					if f, ok := items.(map[string]interface{})["format"]; ok {
+						elemFormat = f.(string)
+					}
+				}
 			}
 
-			if valueType == "array" {
-				items := strings.Split(v[0], ",")
-				values := []string{}
-				for _, item := range items {
-					values = append(values, strings.TrimSpace(item))
-				}
-				document[k] = values
-			} else {
+			// if parameter isn't an array and we didn't receive multiple values, pass it as a normal value
+			if len(v) == 1 && valueType != "array" {
 				document[k] = coerce(v[0], valueType, valueFormat)
+				continue
 			}
+
+			var items []string
+
+			// if we received multiple values, use them as the elements; otherwise, split the value we got
+			if len(v) > 1 {
+				items = v
+			} else {
+				items = strings.Split(v[0], ",")
+			}
+
+			values := []interface{}{}
+			for _, item := range items {
+				values = append(values, coerce(strings.TrimSpace(item), elemType, elemFormat))
+			}
+			document[k] = values
 		}
 
 		// For muiltipart form, handle params and file uploads
