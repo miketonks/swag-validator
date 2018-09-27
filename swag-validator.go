@@ -75,7 +75,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			p.Options,
 			p.Trace,
 			p.Connect} {
-			if e != nil {
+			if e != nil && e.Handler != nil {
 				schema := buildRequestSchema(e)
 				schema.Definitions = buildSchemaDefinitions(api)
 				schemaLoader := gojsonschema.NewGoLoader(schema)
@@ -305,7 +305,7 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 		}
 		for k, p := range d.Properties {
 			sp := SchemaProperty{
-				Type:        []string{p.Type},
+				Type:        strings.Split(p.Type, ","),
 				Description: p.Description,
 				Enum:        p.Enum,
 				Format:      p.Format,
