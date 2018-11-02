@@ -162,7 +162,15 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 					document[k] = "x"
 				}
 			}
+		} else if c.ContentType() == "application/x-www-form-urlencoded" {
+			r := c.Request
+			r.ParseForm()
 
+			body := map[string]interface{}{}
+			for k, v := range c.Request.PostForm {
+				body[k] = coerce(v[0], "", "")
+			}
+			document["body"] = body
 		} else if c.Request.ContentLength > 0 {
 			// For all other types parse body as json, if possible
 
