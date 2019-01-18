@@ -178,13 +178,29 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			var body interface{}
 			b, err := ioutil.ReadAll(c.Request.Body)
 			if err != nil {
-				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Failed to read request body"})
+				c.AbortWithStatusJSON(
+					http.StatusBadRequest, 
+					gin.H{
+						"message": "Validation error",
+						"details": map[string]string{
+							"body": "Failed to read request body",
+						},
+					},
+				)
 				return
 			}
 			err = json.Unmarshal(b, &body)
 			// TODO Consider different error cases: Empty Body, Invalid JSON, Form Data
 			if err != nil {
-				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid json format"})
+				c.AbortWithStatusJSON(
+					http.StatusBadRequest, 
+					gin.H{
+						"message": "Validation error",
+						"details": map[string]string{
+							"body": "Invalid JSON format",
+						},
+					},
+				)
 				return
 			}
 			document["body"] = body
