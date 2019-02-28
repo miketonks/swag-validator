@@ -32,11 +32,14 @@ type RequestSchema struct {
 
 // RequestParameter ...
 type RequestParameter struct {
-	Name     string         `json:"name,omitempty"`
-	Type     string         `json:"type,omitempty"`
-	Format   string         `json:"format,omitempty"`
-	Items    *swagger.Items `json:"items,omitempty"`
-	Nullable bool           `json:"nullable,omitempty"`
+	Name      string         `json:"name,omitempty"`
+	Type      string         `json:"type,omitempty"`
+	Format    string         `json:"format,omitempty"`
+	Items     *swagger.Items `json:"items,omitempty"`
+	Nullable  bool           `json:"nullable,omitempty"`
+	Pattern   string         `json:"pattern,omitempty"`
+	MaxLength int            `json:"maxLength,omitempty"`
+	MinLength int            `json:"minLength,omitempty"`
 }
 
 // SchemaDefinition ...
@@ -55,6 +58,9 @@ type SchemaProperty struct {
 	Description string         `json:"description,omitempty"`
 	Enum        []string       `json:"enum,omitempty"`
 	Format      string         `json:"format,omitempty"`
+	Pattern     string         `json:"pattern,omitempty"`
+	MaxLength   int            `json:"maxLength,omitempty"`
+	MinLength   int            `json:"minLength,omitempty"`
 	Ref         string         `json:"$ref,omitempty"`
 	Example     string         `json:"example,omitempty"`
 	Items       *swagger.Items `json:"items,omitempty"`
@@ -179,7 +185,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			b, err := ioutil.ReadAll(c.Request.Body)
 			if err != nil {
 				c.AbortWithStatusJSON(
-					http.StatusBadRequest, 
+					http.StatusBadRequest,
 					gin.H{
 						"message": "Validation error",
 						"details": map[string]string{
@@ -193,7 +199,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			// TODO Consider different error cases: Empty Body, Invalid JSON, Form Data
 			if err != nil {
 				c.AbortWithStatusJSON(
-					http.StatusBadRequest, 
+					http.StatusBadRequest,
 					gin.H{
 						"message": "Validation error",
 						"details": map[string]string{
@@ -312,11 +318,14 @@ func buildRequestSchema(e *swagger.Endpoint) *RequestSchema {
 		} else if p.Name != "" {
 
 			param := RequestParameter{
-				Name:     p.Name,
-				Type:     p.Type,
-				Format:   p.Format,
-				Nullable: p.Nullable,
-				Items:    p.Items,
+				Name:      p.Name,
+				Type:      p.Type,
+				Format:    p.Format,
+				Nullable:  p.Nullable,
+				Items:     p.Items,
+				Pattern:   p.Pattern,
+				MaxLength: p.MaxLength,
+				MinLength: p.MinLength,
 			}
 			// for validation purposes, file can be treated as string type
 			if p.Type == "file" {
@@ -347,6 +356,9 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 				Description: p.Description,
 				Enum:        p.Enum,
 				Format:      p.Format,
+				Pattern:     p.Pattern,
+				MaxLength:   p.MaxLength,
+				MinLength:   p.MinLength,
 				Ref:         p.Ref,
 				Example:     p.Example,
 				Items:       p.Items,
