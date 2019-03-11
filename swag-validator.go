@@ -32,14 +32,19 @@ type RequestSchema struct {
 
 // RequestParameter ...
 type RequestParameter struct {
-	Name      string         `json:"name,omitempty"`
-	Type      string         `json:"type,omitempty"`
-	Format    string         `json:"format,omitempty"`
-	Items     *swagger.Items `json:"items,omitempty"`
-	Nullable  bool           `json:"nullable,omitempty"`
-	Pattern   string         `json:"pattern,omitempty"`
-	MaxLength int            `json:"maxLength,omitempty"`
-	MinLength int            `json:"minLength,omitempty"`
+	Name             string         `json:"name,omitempty"`
+	Type             string         `json:"type,omitempty"`
+	Format           string         `json:"format,omitempty"`
+	Items            *swagger.Items `json:"items,omitempty"`
+	Nullable         bool           `json:"nullable,omitempty"`
+	Enum             []string       `json:"enum,omitempty"`
+	Pattern          string         `json:"pattern,omitempty"`
+	MaxLength        int            `json:"maxLength,omitempty"`
+	MinLength        int            `json:"minLength,omitempty"`
+	Minimum          *int64         `json:"minimum,omitempty"`
+	Maximum          *int64         `json:"maximum,omitempty"`
+	ExclusiveMinimum bool           `json:"exclusiveMinimum,omitempty"`
+	ExclusiveMaximum bool           `json:"exclusiveMaximum,omitempty"`
 }
 
 // SchemaDefinition ...
@@ -49,21 +54,33 @@ type SchemaDefinition struct {
 	Format               string                    `json:"format,omitempty"`
 	Required             []string                  `json:"required,omitempty"`
 	Properties           map[string]SchemaProperty `json:"properties,omitempty"`
+	Enum                 []string                  `json:"enum,omitempty"`
+	Pattern              string                    `json:"pattern,omitempty"`
+	MinLength            int                       `json:"minLength,omitempty"`
+	MaxLength            int                       `json:"maxLength,omitempty"`
+	Minimum              *int64                    `json:"minimum,omitempty"`
+	Maximum              *int64                    `json:"maximum,omitempty"`
+	ExclusiveMinimum     bool                      `json:"exclusiveMinimum,omitempty"`
+	ExclusiveMaximum     bool                      `json:"exclusiveMaximum,omitempty"`
 	AdditionalProperties bool                      `json:"additionalProperties"`
 }
 
 // SchemaProperty ...
 type SchemaProperty struct {
-	Type        []string       `json:"type,omitempty"`
-	Description string         `json:"description,omitempty"`
-	Enum        []string       `json:"enum,omitempty"`
-	Format      string         `json:"format,omitempty"`
-	Pattern     string         `json:"pattern,omitempty"`
-	MaxLength   int            `json:"maxLength,omitempty"`
-	MinLength   int            `json:"minLength,omitempty"`
-	Ref         string         `json:"$ref,omitempty"`
-	Example     string         `json:"example,omitempty"`
-	Items       *swagger.Items `json:"items,omitempty"`
+	Type             []string       `json:"type,omitempty"`
+	Description      string         `json:"description,omitempty"`
+	Enum             []string       `json:"enum,omitempty"`
+	Format           string         `json:"format,omitempty"`
+	Ref              string         `json:"$ref,omitempty"`
+	Example          string         `json:"example,omitempty"`
+	Items            *swagger.Items `json:"items,omitempty"`
+	Pattern          string         `json:"pattern,omitempty"`
+	MinLength        int            `json:"minLength,omitempty"`
+	MaxLength        int            `json:"maxLength,omitempty"`
+	Minimum          *int64         `json:"minimum,omitempty"`
+	Maximum          *int64         `json:"maximum,omitempty"`
+	ExclusiveMinimum bool           `json:"exclusiveMinimum,omitempty"`
+	ExclusiveMaximum bool           `json:"exclusiveMaximum,omitempty"`
 }
 
 // SwaggerValidator middleware
@@ -318,14 +335,18 @@ func buildRequestSchema(e *swagger.Endpoint) *RequestSchema {
 		} else if p.Name != "" {
 
 			param := RequestParameter{
-				Name:      p.Name,
-				Type:      p.Type,
-				Format:    p.Format,
-				Nullable:  p.Nullable,
-				Items:     p.Items,
-				Pattern:   p.Pattern,
-				MaxLength: p.MaxLength,
-				MinLength: p.MinLength,
+				Name:             p.Name,
+				Type:             p.Type,
+				Format:           p.Format,
+				Nullable:         p.Nullable,
+				Items:            p.Items,
+				Enum:             p.Enum,
+				MinLength:        p.MinLength,
+				MaxLength:        p.MaxLength,
+				Minimum:          p.Minimum,
+				Maximum:          p.Maximum,
+				ExclusiveMinimum: p.ExclusiveMinimum,
+				ExclusiveMaximum: p.ExclusiveMaximum,
 			}
 			// for validation purposes, file can be treated as string type
 			if p.Type == "file" {
@@ -352,16 +373,19 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 		}
 		for k, p := range d.Properties {
 			sp := SchemaProperty{
-				Type:        strings.Split(p.Type, ","),
-				Description: p.Description,
-				Enum:        p.Enum,
-				Format:      p.Format,
-				Pattern:     p.Pattern,
-				MaxLength:   p.MaxLength,
-				MinLength:   p.MinLength,
-				Ref:         p.Ref,
-				Example:     p.Example,
-				Items:       p.Items,
+				Type:             strings.Split(p.Type, ","),
+				Description:      p.Description,
+				Enum:             p.Enum,
+				Format:           p.Format,
+				Ref:              p.Ref,
+				Example:          p.Example,
+				Items:            p.Items,
+				MinLength:        p.MinLength,
+				MaxLength:        p.MaxLength,
+				Minimum:          p.Minimum,
+				Maximum:          p.Maximum,
+				ExclusiveMinimum: p.ExclusiveMinimum,
+				ExclusiveMaximum: p.ExclusiveMaximum,
 			}
 			if p.Nullable {
 				sp.Type = append(sp.Type, "null")
