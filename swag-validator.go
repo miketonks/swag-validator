@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/gin-gonic/gin"
 	"github.com/miketonks/swag/swagger"
 	"github.com/xeipuuv/gojsonschema"
@@ -254,7 +252,6 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			for _, err := range result.Errors() {
 				description := err.Description()
 				details := err.Details()
-				spew.Dump(details)
 
 				if val, ok := details["property"]; ok {
 					field := val.(string)
