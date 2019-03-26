@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/gin-gonic/gin"
 	"github.com/miketonks/swag/swagger"
 	"github.com/xeipuuv/gojsonschema"
@@ -234,6 +236,8 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(b))
 		}
 
+		gojsonschema.Locale = CustomLocale{}
+
 		documentLoader := gojsonschema.NewGoLoader(document)
 		result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 
@@ -248,22 +252,18 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			// fmt.Printf("The document is not valid. see errors :\n")
 			errors := map[string]string{}
 			for _, err := range result.Errors() {
-				field := err.Field()
 				description := err.Description()
+				details := err.Details()
+				spew.Dump(details)
 
-				if field == "(root)" {
-					field = field[1 : len(field)-1]
+				if val, ok := details["property"]; ok {
+					field := val.(string)
+					errors[field] = description
 				} else {
-					index := strings.Index(err.Field(), ".")
-					field = field[index+1:]
+					field := details["field"].(string)
+					field = strings.TrimPrefix(field, "body.")
+					errors[field] = description
 				}
-
-				// If its an enum error, emit field from description
-				if err.Type() == "enum" {
-					description = err.Description()[len(err.Field())+1:]
-				}
-
-				errors[field] = description
 			}
 			// fmt.Printf("The document is not valid. see errors : %+v\n", errors)
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
