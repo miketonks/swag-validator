@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kazyshr/gojsonschema"
 	"github.com/miketonks/swag/swagger"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 // MaxMemory ...
@@ -233,9 +233,12 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 			//reset the response body to the original unread state
 			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(b))
 		}
-		documentLoader := gojsonschema.NewGoLoader(document)
 
+		gojsonschema.Locale = CustomLocale{}
+
+		documentLoader := gojsonschema.NewGoLoader(document)
 		result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+
 		if err != nil {
 			// fmt.Printf("ERROR: %s", err)
 			c.Next()
@@ -243,15 +246,20 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 		} else if result.Valid() {
 			// fmt.Printf("The document is valid\n")
 			c.Next()
-
 		} else {
 			// fmt.Printf("The document is not valid. see errors :\n")
 			errors := map[string]string{}
 			for _, err := range result.Errors() {
-				// Err implements the ResultError interface
-				kv := strings.SplitN(err.String(), ": ", 2)
-				if len(kv) > 1 {
-					errors[kv[0]] = kv[1]
+				description := err.Description()
+				details := err.Details()
+
+				if val, ok := details["property"]; ok {
+					field := val.(string)
+					errors[field] = description
+				} else {
+					field := details["field"].(string)
+					field = strings.TrimPrefix(field, "body.")
+					errors[field] = description
 				}
 			}
 			// fmt.Printf("The document is not valid. see errors : %+v\n", errors)
