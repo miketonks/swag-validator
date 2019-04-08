@@ -240,8 +240,10 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 		result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 
 		if err != nil {
-			// fmt.Printf("ERROR: %s", err)
-			c.Next()
+			// fmt.Printf("ERROR: %s\n", err)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"message": "swagger document " + err.Error(),
+			})
 
 		} else if result.Valid() {
 			// fmt.Printf("The document is valid\n")
