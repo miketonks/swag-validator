@@ -385,7 +385,6 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 		}
 		for k, p := range d.Properties {
 			sp := SchemaProperty{
-				Type:                 strings.Split(p.Type, ","),
 				Description:          p.Description,
 				Enum:                 p.Enum,
 				Format:               p.Format,
@@ -399,6 +398,9 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 				ExclusiveMinimum:     p.ExclusiveMinimum,
 				ExclusiveMaximum:     p.ExclusiveMaximum,
 				AdditionalProperties: p.AdditionalProperties,
+			}
+			if p.Type != "" {
+				sp.Type = strings.Split(p.Type, ",")
 			}
 			if p.Nullable {
 				sp.Type = append(sp.Type, "null")
