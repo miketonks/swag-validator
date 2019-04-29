@@ -33,7 +33,7 @@ func TestGetPet(t *testing.T) {
 
 	resp = getReq(t, router, "/pet/ollie")
 	assert.Equal(t, 400, resp.Code)
-	assert.Contains(t, resp.Body.String(), "petId: Invalid type. Expected: integer, given: string")
+	assert.Contains(t, resp.Body.String(), "Invalid type. Expected: integer, given: string")
 }
 
 func TestPostPet(t *testing.T) {
@@ -51,21 +51,21 @@ func TestPostPet(t *testing.T) {
 		requiredFieldMissing := `{"dob": "2018-01-01T12:00:00-09:00", "grumpy": true, "uuid": "1c694c09-3210-45d4-be6b-dbd94be1be4f"}`
 		resp := postStr(t, router, "/pet", requiredFieldMissing)
 		assert.Equal(t, 400, resp.Code)
-		assert.Contains(t, resp.Body.String(), "name is required")
+		assert.Contains(t, resp.Body.String(), "Is required")
 	})
 
 	t.Run("POST with invalid date-time", func(t *testing.T) {
 		invalidDateTime := `{"name": "ollie", "dob": "2018-01-01T12:00:0"}`
 		resp := postStr(t, router, "/pet", invalidDateTime)
 		assert.Equal(t, 400, resp.Code)
-		assert.Contains(t, resp.Body.String(), "Does not match format 'date-time'")
+		assert.Contains(t, resp.Body.String(), "Field does not match format 'date-time'")
 	})
 
 	t.Run("POST with invalid uuid", func(t *testing.T) {
 		invalidUUID := `{"name": "ollie", "uuid": "foo-bar-baz"}`
 		resp := postStr(t, router, "/pet", invalidUUID)
 		assert.Equal(t, 400, resp.Code)
-		assert.Contains(t, resp.Body.String(), "Does not match format 'uuid'")
+		assert.Contains(t, resp.Body.String(), "Field does not match format 'uuid'")
 	})
 
 	t.Run("POST with invalid bool", func(t *testing.T) {
