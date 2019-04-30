@@ -48,7 +48,7 @@ func SetupRouter(api *swagger.API) *gin.Engine {
 	enableCors := true
 	router.GET("/swagger", gin.WrapH(api.Handler(enableCors)))
 
-	router.Use(swag_validator.SwaggerValidator(api))
+	router.Use(swagvalidator.SwaggerValidator(api))
 
 	api.Walk(func(path string, endpoint *swagger.Endpoint) {
 		h := endpoint.Handler.(func(c *gin.Context))
