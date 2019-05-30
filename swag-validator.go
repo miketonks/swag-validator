@@ -257,14 +257,12 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 				description := err.Description()
 				details := err.Details()
 
+				field := details["field"].(string)
 				if val, ok := details["property"]; ok {
-					field := val.(string)
-					errors[field] = description
-				} else {
-					field := details["field"].(string)
-					field = strings.TrimPrefix(field, "body.")
-					errors[field] = description
+					field += "." + val.(string)
 				}
+				field = strings.TrimPrefix(field, "body.")
+				errors[field] = description
 			}
 			// fmt.Printf("The document is not valid. see errors : %+v\n", errors)
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
