@@ -262,6 +262,7 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 					field += "." + val.(string)
 				}
 				field = strings.TrimPrefix(field, "body.")
+				field = strings.TrimPrefix(field, "(root).")
 				errors[field] = description
 			}
 			// fmt.Printf("The document is not valid. see errors : %+v\n", errors)
