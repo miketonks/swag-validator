@@ -39,6 +39,9 @@ type RequestParameter struct {
 	Nullable             bool           `json:"nullable,omitempty"`
 	Enum                 []string       `json:"enum,omitempty"`
 	Pattern              string         `json:"pattern,omitempty"`
+	MinItems             int            `json:"minItems,omitempty"`
+	MaxItems             int            `json:"maxItems,omitempty"`
+	UniqueItems          bool           `json:"uniqueItems,omitempty"`
 	MaxLength            int            `json:"maxLength,omitempty"`
 	MinLength            int            `json:"minLength,omitempty"`
 	Minimum              *int64         `json:"minimum,omitempty"`
@@ -57,6 +60,9 @@ type SchemaDefinition struct {
 	Properties           map[string]SchemaProperty `json:"properties,omitempty"`
 	Enum                 []string                  `json:"enum,omitempty"`
 	Pattern              string                    `json:"pattern,omitempty"`
+	MinItems             int                       `json:"minItems,omitempty"`
+	MaxItems             int                       `json:"maxItems,omitempty"`
+	UniqueItems          bool                      `json:"uniqueItems,omitempty"`
 	MinLength            int                       `json:"minLength,omitempty"`
 	MaxLength            int                       `json:"maxLength,omitempty"`
 	Minimum              *int64                    `json:"minimum,omitempty"`
@@ -76,6 +82,9 @@ type SchemaProperty struct {
 	Example              string         `json:"example,omitempty"`
 	Items                *swagger.Items `json:"items,omitempty"`
 	Pattern              string         `json:"pattern,omitempty"`
+	MinItems             int            `json:"minItems,omitempty"`
+	MaxItems             int            `json:"maxItems,omitempty"`
+	UniqueItems          bool           `json:"uniqueItems,omitempty"`
 	MinLength            int            `json:"minLength,omitempty"`
 	MaxLength            int            `json:"maxLength,omitempty"`
 	Minimum              *int64         `json:"minimum,omitempty"`
@@ -354,6 +363,9 @@ func buildRequestSchema(e *swagger.Endpoint) *RequestSchema {
 				Nullable:             p.Nullable,
 				Items:                p.Items,
 				Enum:                 p.Enum,
+				MinItems:             p.MinItems,
+				MaxItems:             p.MaxItems,
+				UniqueItems:          p.UniqueItems,
 				MinLength:            p.MinLength,
 				MaxLength:            p.MaxLength,
 				Minimum:              p.Minimum,
@@ -392,6 +404,9 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 				Ref:                  p.Ref,
 				Example:              p.Example,
 				Items:                p.Items,
+				MinItems:             p.MinItems,
+				MaxItems:             p.MaxItems,
+				UniqueItems:          p.UniqueItems,
 				MinLength:            p.MinLength,
 				MaxLength:            p.MaxLength,
 				Minimum:              p.Minimum,
