@@ -8,7 +8,7 @@ require (
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/json-iterator/go v1.1.6 // indirect
 	github.com/mattn/go-isatty v0.0.7 // indirect
-	github.com/miketonks/swag v0.0.0-20190520094041-44b0b5142c49
+	github.com/miketonks/swag v0.0.0-20190624155305-d1f7aa61ab61
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/stretchr/testify v1.3.0

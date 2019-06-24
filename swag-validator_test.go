@@ -220,6 +220,9 @@ type payload struct {
 	ExclMinimum     int      `json:"excl_minimum,omitempty" minimum:"5" exclusive_minimum:"true"`
 	ExclMaximum     int      `json:"excl_maximum,omitempty" maximum:"1" exclusive_maximum:"true"`
 	Nested          *nested  `json:"nested,omitempty"`
+	MaxItemsArr     []string `json:"max_items_arr,omitempty" max_items:"3"`
+	MinItemsArr     []string `json:"min_items_arr,omitempty" min_items:"2"`
+	UniqueItemsAarr []string `json:"unique_items_arr,omitempty" unique_items:"true"`
 }
 
 func TestPayload(t *testing.T) {
@@ -405,6 +408,48 @@ func TestPayload(t *testing.T) {
 		{
 			description:      "Nested struct field is present",
 			in:               payload{Nested: &nested{Foo: "bar"}},
+			expectedStatus:   200,
+			expectedResponse: nil,
+		},
+		{
+			description:    "Array contains more items than maximum allowed",
+			in:             payload{MaxItemsArr: []string{"1", "2", "3", "4"}},
+			expectedStatus: 400,
+			expectedResponse: map[string]interface{}{
+				"max_items_arr": "Array must have at most 3 items",
+			},
+		},
+		{
+			description:      "Array contains less items than maximum allowed",
+			in:               payload{MaxItemsArr: []string{"1", "2"}},
+			expectedStatus:   200,
+			expectedResponse: nil,
+		},
+		{
+			description:    "Array contains less items than minimum allowed",
+			in:             payload{MinItemsArr: []string{"1"}},
+			expectedStatus: 400,
+			expectedResponse: map[string]interface{}{
+				"min_items_arr": "Array must have at least 2 items",
+			},
+		},
+		{
+			description:      "Array contains more items than minimum required",
+			in:               payload{MinItemsArr: []string{"1", "2", "3"}},
+			expectedStatus:   200,
+			expectedResponse: nil,
+		},
+		{
+			description:    "Unique array contains non-unique items",
+			in:             payload{UniqueItemsAarr: []string{"foo", "foo"}},
+			expectedStatus: 400,
+			expectedResponse: map[string]interface{}{
+				"unique_items_arr": "array items[0,1] must be unique",
+			},
+		},
+		{
+			description:      "Unique array contains unique items",
+			in:               payload{UniqueItemsAarr: []string{"foo", "bar"}},
 			expectedStatus:   200,
 			expectedResponse: nil,
 		},
