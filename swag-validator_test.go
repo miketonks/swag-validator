@@ -55,6 +55,14 @@ func TestQuery(t *testing.T) {
 			expectedStatus:   200,
 			expectedResponse: nil,
 		},
+		{
+			description:    "Not allowed enum value in enum query param",
+			query:          "enum_param=baz",
+			expectedStatus: 400,
+			expectedResponse: map[string]interface{}{
+				"enum_param": "Must be one of the following: \"foo\", \"bar\"",
+			},
+		},
 	}
 
 	api := swag.New(swag.Endpoints(endpoint.New("GET", "/validate-test", "Test query params",
@@ -66,6 +74,10 @@ func TestQuery(t *testing.T) {
 			"uuid_param": {
 				Type:   "string",
 				Format: "uuid",
+			},
+			"enum_param": {
+				Type: "string",
+				Enum: []string{"foo", "bar"},
 			},
 		}),
 	)))
