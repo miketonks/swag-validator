@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo"
+	"github.com/miketonks/swag"
 	"github.com/miketonks/swag/swagger"
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -304,7 +305,7 @@ func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 				schema.Definitions = buildSchemaDefinitions(api)
 				schemaLoader := gojsonschema.NewGoLoader(schema)
 
-				key := e.Method + e.Path
+				key := e.Method + swag.ColonPath(e.Path)
 				apiMap[key] = schemaLoader
 			}
 		}
@@ -313,7 +314,8 @@ func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 	// This part runs at runtime, with context for individual request
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			schemaLoader, found := apiMap[c.Request().Method+c.Path()]
+			key := c.Request().Method + c.Path()
+			schemaLoader, found := apiMap[key]
 			if !found {
 				return next(c)
 			}
