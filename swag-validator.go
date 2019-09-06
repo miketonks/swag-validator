@@ -305,7 +305,7 @@ func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 				schema.Definitions = buildSchemaDefinitions(api)
 				schemaLoader := gojsonschema.NewGoLoader(schema)
 
-				key := e.Method + swag.ColonPath(e.Path)
+				key := e.Method + api.BasePath + swag.ColonPath(e.Path)
 				apiMap[key] = schemaLoader
 			}
 		}
