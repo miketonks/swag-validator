@@ -402,7 +402,7 @@ func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 
 			} else if result.Valid() {
 				// fmt.Printf("The document is valid\n")
-				next(c)
+				return next(c)
 			} else {
 				// fmt.Printf("The document is not valid. see errors :\n")
 				errors := map[string]string{}
