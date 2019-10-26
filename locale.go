@@ -203,22 +203,22 @@ func (l CustomLocale) MultipleOf() string {
 
 // NumberGTE ...
 func (l CustomLocale) NumberGTE() string {
-	return `Must be greater than or equal to {{.min.RatString}}`
+	return `Must be greater than or equal to {{.min}}`
 }
 
 // NumberGT ...
 func (l CustomLocale) NumberGT() string {
-	return `Must be greater than {{.min.RatString}}`
+	return `Must be greater than {{.min}}`
 }
 
 // NumberLTE ...
 func (l CustomLocale) NumberLTE() string {
-	return `Must be less than or equal to {{.max.RatString}}`
+	return `Must be less than or equal to {{.max}}`
 }
 
 // NumberLT ...
 func (l CustomLocale) NumberLT() string {
-	return `Must be less than {{.max.RatString}}`
+	return `Must be less than {{.max}}`
 }
 
 // RegexPattern ...

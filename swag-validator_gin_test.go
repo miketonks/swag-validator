@@ -392,7 +392,7 @@ func TestPayloadGin(t *testing.T) {
 			in:             payload{Nested: &nested{}},
 			expectedStatus: 400,
 			expectedResponse: map[string]interface{}{
-				"nested.foo": "Is required",
+				"nested.foo": "foo is required",
 			},
 		},
 		{
