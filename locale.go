@@ -3,6 +3,7 @@ package swagvalidator
 type (
 	// locale is an interface for defining custom error strings
 	locale interface {
+		False() string
 		Required() string
 		InvalidType() string
 		NumberAnyOf() string
@@ -65,9 +66,14 @@ type (
 	CustomLocale struct{}
 )
 
-// Required ...
+// False returns a format-string for "false" schema validation errors
+func (l CustomLocale) False() string {
+	return "False always fails validation"
+}
+
+// Required returns a format-string for "required" schema validation errors
 func (l CustomLocale) Required() string {
-	return `Is required`
+	return `{{.property}} is required`
 }
 
 // InvalidType ...

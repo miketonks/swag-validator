@@ -51,7 +51,7 @@ func TestPostPet(t *testing.T) {
 		requiredFieldMissing := `{"dob": "2018-01-01T12:00:00-09:00", "grumpy": true, "uuid": "1c694c09-3210-45d4-be6b-dbd94be1be4f"}`
 		resp := postStr(t, router, "/pet", requiredFieldMissing)
 		assert.Equal(t, 400, resp.Code)
-		assert.Contains(t, resp.Body.String(), "Is required")
+		assert.Contains(t, resp.Body.String(), "name is required")
 	})
 
 	t.Run("POST with invalid date-time", func(t *testing.T) {
