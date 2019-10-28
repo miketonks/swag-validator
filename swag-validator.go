@@ -288,6 +288,8 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 // SwaggerValidatorEcho middleware
 func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 
+	basePath := strings.TrimRight(api.BasePath, "/")
+
 	apiMap := map[string]gojsonschema.JSONLoader{}
 	for _, p := range api.Paths {
 		for _, e := range []*swagger.Endpoint{
@@ -305,7 +307,7 @@ func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 				schema.Definitions = buildSchemaDefinitions(api)
 				schemaLoader := gojsonschema.NewGoLoader(schema)
 
-				key := e.Method + api.BasePath + swag.ColonPath(e.Path)
+				key := e.Method + basePath + swag.ColonPath(e.Path)
 				apiMap[key] = schemaLoader
 			}
 		}

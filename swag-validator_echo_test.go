@@ -181,10 +181,11 @@ func TestPathEcho(t *testing.T) {
 	// Even if the handler is a lambda, it still does not work.
 	// Therefore have to create a new api for each endpoint iteratively
 	for _, testCase := range testTable {
-		api := swag.New(swag.Endpoints(endpoint.New("GET", "/validate-test"+testCase.urlWParm, "Test the validator",
-			endpoint.Handler(func(echo.Context) error { return nil }),
-			testCase.path,
-		)))
+		api := swag.New(
+			swag.Endpoints(endpoint.New("GET", "/validate-test"+testCase.urlWParm, "Test the validator",
+				endpoint.Handler(func(echo.Context) error { return nil }),
+				testCase.path,
+			)))
 
 		r := createEngineEcho(api)
 

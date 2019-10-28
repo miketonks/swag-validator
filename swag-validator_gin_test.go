@@ -18,7 +18,8 @@ import (
 )
 
 func createEngineGin(api *swagger.API) (r *gin.Engine) {
-	r = gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	r = gin.New()
 	r.Use(sv.SwaggerValidator(api))
 	api.Walk(func(path string, endpoint *swagger.Endpoint) {
 		h := endpoint.Handler.(func(c *gin.Context))
