@@ -1,6 +1,8 @@
 # Swagger Validation Middleware
 
-Swagger generation and validation for gin server.
+Swagger generation and validation for gin and echo server.
+
+[![Build Status](https://travis-ci.com/miketonks/swag-validator.svg?branch=master)](https://travis-ci.com/miketonks/swag-validator)
 
 ## Definition
 
