@@ -3,8 +3,7 @@
 Swagger generation and validation for gin and echo server.
 
 [![Build Status](https://travis-ci.com/miketonks/swag-validator.svg?branch=master)](https://travis-ci.com/miketonks/swag-validator)
-
-[![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](http://godoc.org/github.com/miketonks/swag-validator)
+[![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg)](http://godoc.org/github.com/miketonks/swag-validator)
 
 ## Definition
 
