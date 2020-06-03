@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	swag "github.com/miketonks/swag"
 	"github.com/miketonks/swag/endpoint"
 	"github.com/miketonks/swag/swagger"

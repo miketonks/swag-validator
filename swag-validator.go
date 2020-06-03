@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/miketonks/swag"
 	"github.com/miketonks/swag/swagger"
 	"github.com/xeipuuv/gojsonschema"
