@@ -444,6 +444,20 @@ func TestPayloadGin(t *testing.T) {
 			expectedStatus:   200,
 			expectedResponse: nil,
 		},
+		{
+			description:    "Pattern is invalid",
+			in:             payload{PatternString: "ahoy"},
+			expectedStatus: 400,
+			expectedResponse: map[string]interface{}{
+				"pattern_str": "Does not match pattern '^test$'",
+			},
+		},
+		{
+			description:      "Pattern is valid",
+			in:               payload{PatternString: "test"},
+			expectedStatus:   200,
+			expectedResponse: nil,
+		},
 	}
 
 	api := swag.New(swag.Endpoints(endpoint.New("POST", "/validate-test", "Test the validator",
