@@ -426,8 +426,6 @@ func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 					"details": errors,
 				})
 			}
-
-			return nil
 		}
 	}
 }
@@ -540,11 +538,12 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 	defs := map[string]SchemaDefinition{}
 	for _, d := range api.Definitions {
 		schemaDef := SchemaDefinition{
-			Name:       d.Name,
-			Type:       d.Type,
-			Format:     d.Format,
-			Required:   d.Required,
-			Properties: map[string]SchemaProperty{},
+			Name:                 d.Name,
+			Type:                 d.Type,
+			Format:               d.Format,
+			Required:             d.Required,
+			Properties:           map[string]SchemaProperty{},
+			AdditionalProperties: d.AdditionalProperties,
 		}
 		for k, p := range d.Properties {
 			sp := SchemaProperty{
@@ -571,11 +570,6 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 			}
 			if p.Nullable {
 				sp.Type = append(sp.Type, "null")
-			}
-
-			// for json.RawMessage
-			if p.GoType.PkgPath() == "encoding/json" && p.GoType.Name() == "RawMessage" {
-				sp.Type = []string{"raw_message"}
 			}
 
 			schemaDef.Properties[k] = sp
