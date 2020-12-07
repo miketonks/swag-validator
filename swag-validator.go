@@ -333,8 +333,17 @@ func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 				document[k] = loadValueForKey(properties, k, v)
 			}
 
+			// Strip any options off the content type, e.g. `; charset=UTF-8`
+			contentType := c.Request().Header.Get(echo.HeaderContentType)
+			for i, ch := range contentType {
+				if ch == ' ' || ch == ';' {
+					contentType = contentType[:i]
+					break
+				}
+			}
+
 			// For muiltipart form, handle params and file uploads
-			if c.Request().Header.Get(echo.HeaderContentType) == "multipart/form-data" {
+			if contentType == "multipart/form-data" {
 				r := c.Request()
 				r.ParseMultipartForm(MaxMemory)
 
@@ -346,7 +355,7 @@ func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 						document[k] = "x"
 					}
 				}
-			} else if c.Request().Header.Get(echo.HeaderContentType) == "application/x-www-form-urlencoded" {
+			} else if contentType == "application/x-www-form-urlencoded" {
 				r := c.Request()
 				r.ParseForm()
 
