@@ -331,11 +331,17 @@ func TestPayloadEcho(t *testing.T) {
 			in:             payload{EnumStringArr: []string{"test"}},
 			expectedStatus: 400,
 			expectedResponse: map[string]interface{}{
-				"enum_str_arr.0": "Must be one of the following: \"Bar\"",
+				"enum_str_arr.0": "Must be one of the following: \"Foo\", \"Bar\"",
 			},
 		},
 		{
-			description:      `Strings in an arrya match enumeration`,
+			description:      `Strings in an array match enumeration`,
+			in:               payload{EnumStringArr: []string{"Foo"}},
+			expectedStatus:   200,
+			expectedResponse: nil,
+		},
+		{
+			description:      `Strings in an array match enumeration`,
 			in:               payload{EnumStringArr: []string{"Bar"}},
 			expectedStatus:   200,
 			expectedResponse: nil,
