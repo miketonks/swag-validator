@@ -17,9 +17,9 @@ import (
 	sv "github.com/miketonks/swag-validator"
 )
 
-func createEngineEcho(api *swagger.API) (r *echo.Echo) {
+func createEngineEcho(api *swagger.API, opts ...sv.EchoOption) (r *echo.Echo) {
 	r = echo.New()
-	r.Use(sv.SwaggerValidatorEcho(api))
+	r.Use(sv.SwaggerValidatorEcho(api, opts...))
 	api.Walk(func(path string, endpoint *swagger.Endpoint) {
 		h := endpoint.Handler.(func(echo.Context) error)
 		path = swag.ColonPath(path)
@@ -113,16 +113,11 @@ func TestQueryEcho(t *testing.T) {
 
 			var body map[string]interface{}
 
-			if w.Body != nil && w.Body.String() != "" {
-				err := json.Unmarshal(w.Body.Bytes(), &body)
-				if err != nil {
-					panic(fmt.Sprintf("Failed to unmarshal body while running test: %q. Error: %s", tt.description, err))
-				}
-
+			unmarshalBody(w, &body)
+			assert.Equal(t, tt.expectedStatus, w.Code)
+			if tt.expectedResponse != nil {
 				assert.Equal(t, tt.expectedResponse, body["details"])
 			}
-
-			assert.Equal(t, tt.expectedStatus, w.Code)
 		})
 	}
 }
@@ -204,17 +199,11 @@ func TestPathEcho(t *testing.T) {
 				r.ServeHTTP(w, req)
 
 				var body map[string]interface{}
-
-				if w.Body != nil && w.Body.String() != "" {
-					err := json.Unmarshal(w.Body.Bytes(), &body)
-					if err != nil {
-						panic(fmt.Sprintf("Failed to unmarshal body while running test: %q. Error: %s", tt.description, err))
-					}
-
+				unmarshalBody(w, &body)
+				assert.Equal(t, tt.expectedStatus, w.Code)
+				if tt.expectedResponse != nil {
 					assert.Equal(t, tt.expectedResponse, body["details"])
 				}
-
-				assert.Equal(t, tt.expectedStatus, w.Code)
 			})
 		}
 	}
@@ -485,17 +474,59 @@ func TestPayloadEcho(t *testing.T) {
 			r.ServeHTTP(w, req)
 
 			var body map[string]interface{}
-
-			if w.Body != nil && w.Body.String() != "" {
-				err := json.Unmarshal(w.Body.Bytes(), &body)
-				if err != nil {
-					panic(fmt.Sprintf("Failed to unmarshal body while running test: %q. Error: %s", tt.description, err))
-				}
-
-				assert.Equal(t, tt.expectedResponse, body["details"])
-			}
+			unmarshalBody(w, &body)
 
 			assert.Equal(t, tt.expectedStatus, w.Code)
+			if tt.expectedResponse != nil {
+				assert.Equal(t, tt.expectedResponse, body["details"])
+			}
 		})
+	}
+}
+
+func TestOptionsReturnErrorsEcho(t *testing.T) {
+
+	api := swag.New(
+		swag.Endpoints(endpoint.New("GET", "/error-handler-test/{id}", "Test the validator",
+			endpoint.Handler(func(echo.Context) error { return nil }),
+			endpoint.Path("id", "integer", "integer", ""),
+		)))
+
+	r := createEngineEcho(api, sv.SetEchoReturnErrors(true))
+
+	customHTTPErrorHandler := func(err error, c echo.Context) {
+		sve := err.(sv.ErrorResponse)
+		sve.Message = "HANDLED: " + sve.Message
+		c.JSON(sve.StatusCode, sve)
+	}
+
+	r.HTTPErrorHandler = customHTTPErrorHandler
+
+	t.Run("ReturnErrors", func(t *testing.T) {
+
+		w := httptest.NewRecorder()
+
+		req, err := http.NewRequest("GET", "/error-handler-test/foo", nil)
+		if err != nil {
+			log.Fatalf("Error preparing request: %s", err)
+		}
+
+		r.ServeHTTP(w, req)
+
+		var resp sv.ErrorResponse
+		unmarshalBody(w, &resp)
+		assert.Equal(t, 400, w.Code)
+		assert.Equal(t, "HANDLED: Validation error", resp.Message)
+		assert.Equal(t, map[string]string{"id": "Invalid type. Expected: integer, given: string"}, resp.Details)
+
+	})
+}
+
+func unmarshalBody(w *httptest.ResponseRecorder, v interface{}) {
+	if w.Body != nil && w.Body.String() != "" {
+		err := json.Unmarshal(w.Body.Bytes(), v)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to unmarshal body while running test. Error: %s", err))
+		}
 	}
 }
