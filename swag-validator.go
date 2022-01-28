@@ -21,6 +21,21 @@ import (
 // MaxMemory ...
 const MaxMemory = 1 * 1024 * 1024
 
+// EchoOption ...
+type EchoOption func(*EchoOptions)
+
+// EchoOptions ...
+type EchoOptions struct {
+	ReturnErrors bool
+}
+
+// SetEchoReturnErrors ...
+func SetEchoReturnErrors(b bool) EchoOption {
+	return func(o *EchoOptions) {
+		o.ReturnErrors = b
+	}
+}
+
 // RequestSchema ...
 type RequestSchema struct {
 	Title                string                      `json:"title"`
@@ -94,6 +109,17 @@ type SchemaProperty struct {
 	ExclusiveMinimum     bool           `json:"exclusiveMinimum,omitempty"`
 	ExclusiveMaximum     bool           `json:"exclusiveMaximum,omitempty"`
 	AdditionalProperties interface{}    `json:"additionalProperties,omitempty"`
+}
+
+// ErrorResponse ...
+type ErrorResponse struct {
+	StatusCode int               `json:"-"`
+	Message    string            `json:"message"`
+	Details    map[string]string `json:"details"`
+}
+
+func (e ErrorResponse) Error() string {
+	return e.Message
 }
 
 func loadValueForKey(properties map[string]interface{}, key string, values []string) interface{} {
@@ -286,7 +312,12 @@ func SwaggerValidator(api *swagger.API) gin.HandlerFunc {
 }
 
 // SwaggerValidatorEcho middleware
-func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
+func SwaggerValidatorEcho(api *swagger.API, opts ...EchoOption) echo.MiddlewareFunc {
+
+	options := &EchoOptions{}
+	for _, o := range opts {
+		o(options)
+	}
 
 	basePath := strings.TrimRight(api.BasePath, "/")
 
@@ -371,27 +402,25 @@ func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 				var body interface{}
 				b, err := ioutil.ReadAll(c.Request().Body)
 				if err != nil {
-					return c.JSON(
-						http.StatusBadRequest,
-						echo.Map{
-							"message": "Validation error",
-							"details": map[string]string{
-								"body": "Failed to read request body",
-							},
+					return errorResponse(c, options, ErrorResponse{
+						StatusCode: http.StatusBadRequest,
+						Message:    "Validation error",
+						Details: map[string]string{
+							"body": "Failed to read request body",
 						},
+					},
 					)
 				}
 				err = json.Unmarshal(b, &body)
 				// TODO Consider different error cases: Empty Body, Invalid JSON, Form Data
 				if err != nil {
-					return c.JSON(
-						http.StatusBadRequest,
-						echo.Map{
-							"message": "Validation error",
-							"details": map[string]string{
-								"body": "Invalid JSON format",
-							},
+					return errorResponse(c, options, ErrorResponse{
+						StatusCode: http.StatusBadRequest,
+						Message:    "Validation error",
+						Details: map[string]string{
+							"body": "Invalid JSON format",
 						},
+					},
 					)
 				}
 				document["body"] = body
@@ -430,13 +459,21 @@ func SwaggerValidatorEcho(api *swagger.API) echo.MiddlewareFunc {
 					errors[field] = description
 				}
 				// fmt.Printf("The document is not valid. see errors : %+v\n", errors)
-				return c.JSON(http.StatusBadRequest, echo.Map{
-					"message": "Validation error",
-					"details": errors,
+				return errorResponse(c, options, ErrorResponse{
+					StatusCode: http.StatusBadRequest,
+					Message:    "Validation error",
+					Details:    errors,
 				})
 			}
 		}
 	}
+}
+
+func errorResponse(c echo.Context, o *EchoOptions, resp ErrorResponse) error {
+	if o.ReturnErrors {
+		return resp
+	}
+	return c.JSON(resp.StatusCode, resp)
 }
 
 // Data types are defined here: https://swagger.io/specification/#dataTypes

@@ -29,10 +29,12 @@ post := endpoint.New("post", "/pet", "Add a new pet to the store",
 
 Add the middleware to your server:
 
-```
+```go
+import sv "github.com/miketonks/swag-validator"
+
 r.GET("/swagger", gin.WrapH(api.Handler(enableCors)))
 
-r.Use(swag_validator.SwaggerValidator(api))
+r.Use(sv.SwaggerValidator(api))
 ```
 
 ## Swagger Docs
@@ -75,6 +77,15 @@ curl http://localhost:8089/pet/foo
 {"error":["petId: Invalid type. Expected: integer, given: string"]}
 ```
 
+## Configuration Options
+
+*SetEchoReturnErrors* allows Echo server to an ErrorResponse struct instead of sending a JSON response.  This allows use of echo ErrorHandler to implement custom error handling.
+
+```go
+import sv "github.com/miketonks/swag-validator"
+
+r.Use(sv.SwaggerValidator(api), sv.SetEchoReturnErrors(true))
+```
 # Sample
 
 See /sample for working example and test cases.
