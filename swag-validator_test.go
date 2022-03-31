@@ -38,9 +38,12 @@ type payload struct {
 	MaxItemsArr     []string `json:"max_items_arr,omitempty" max_items:"3"`
 	MinItemsArr     []string `json:"min_items_arr,omitempty" min_items:"2"`
 	UniqueItemsAarr []string `json:"unique_items_arr,omitempty" unique_items:"true"`
+
+	NonNullElems  map[string]string  `json:"non_null_elems,omitempty"`
+	NullableElems map[string]*string `json:"nullable_elems,omitempty"`
 }
 
-func preparePostRequest(url string, body payload) *http.Request {
+func preparePostRequest(url string, body interface{}) *http.Request {
 	buff, err := json.Marshal(body)
 	if err != nil {
 		log.Fatalf("Failed to marshal the body: %s", err)

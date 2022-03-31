@@ -220,7 +220,7 @@ func TestPayloadGin(t *testing.T) {
 
 	testTable := []struct {
 		description      string
-		in               payload
+		in               interface{}
 		expectedStatus   int
 		expectedResponse map[string]interface{}
 	}{
@@ -463,6 +463,25 @@ func TestPayloadGin(t *testing.T) {
 			in:               payload{PatternString: "test"},
 			expectedStatus:   200,
 			expectedResponse: nil,
+		},
+		{
+			description: "Non-nullable map has no null elems, nullable has both null and non-null elems",
+			in: map[string]interface{}{
+				"non_null_elems": map[string]*string{"foo": pString("bar")},
+				"nullable_elems": map[string]*string{"foo": pString("bar"), "baz": nil},
+			},
+			expectedStatus:   200,
+			expectedResponse: nil,
+		},
+		{
+			description: "Non-nullable map has null elems",
+			in: map[string]interface{}{
+				"non_null_elems": map[string]*string{"foo": nil},
+			},
+			expectedStatus: 400,
+			expectedResponse: map[string]interface{}{
+				"non_null_elems.foo": "Invalid type. Expected: string, given: null",
+			},
 		},
 	}
 
