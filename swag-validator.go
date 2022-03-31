@@ -580,6 +580,38 @@ func buildRequestSchema(e *swagger.Endpoint) *RequestSchema {
 	return &r
 }
 
+func convertProperty(p swagger.Property) SchemaProperty {
+	sp := SchemaProperty{
+		Description:          p.Description,
+		Enum:                 p.Enum,
+		Format:               p.Format,
+		Ref:                  p.Ref,
+		Example:              p.Example,
+		Items:                p.Items,
+		Pattern:              p.Pattern,
+		MinItems:             p.MinItems,
+		MaxItems:             p.MaxItems,
+		UniqueItems:          p.UniqueItems,
+		MinLength:            p.MinLength,
+		MaxLength:            p.MaxLength,
+		Minimum:              p.Minimum,
+		Maximum:              p.Maximum,
+		ExclusiveMinimum:     p.ExclusiveMinimum,
+		ExclusiveMaximum:     p.ExclusiveMaximum,
+		AdditionalProperties: p.AdditionalProperties,
+	}
+	if p.Type != "" {
+		sp.Type = strings.Split(p.Type, ",")
+	}
+	if p.Nullable {
+		sp.Type = append(sp.Type, "null")
+	}
+	if prop, ok := p.AdditionalProperties.(*swagger.Property); ok {
+		sp.AdditionalProperties = convertProperty(*prop)
+	}
+	return sp
+}
+
 func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 	defs := map[string]SchemaDefinition{}
 	for _, d := range api.Definitions {
@@ -592,31 +624,7 @@ func buildSchemaDefinitions(api *swagger.API) map[string]SchemaDefinition {
 			AdditionalProperties: d.AdditionalProperties,
 		}
 		for k, p := range d.Properties {
-			sp := SchemaProperty{
-				Description:          p.Description,
-				Enum:                 p.Enum,
-				Format:               p.Format,
-				Ref:                  p.Ref,
-				Example:              p.Example,
-				Items:                p.Items,
-				Pattern:              p.Pattern,
-				MinItems:             p.MinItems,
-				MaxItems:             p.MaxItems,
-				UniqueItems:          p.UniqueItems,
-				MinLength:            p.MinLength,
-				MaxLength:            p.MaxLength,
-				Minimum:              p.Minimum,
-				Maximum:              p.Maximum,
-				ExclusiveMinimum:     p.ExclusiveMinimum,
-				ExclusiveMaximum:     p.ExclusiveMaximum,
-				AdditionalProperties: p.AdditionalProperties,
-			}
-			if p.Type != "" {
-				sp.Type = strings.Split(p.Type, ",")
-			}
-			if p.Nullable {
-				sp.Type = append(sp.Type, "null")
-			}
+			sp := convertProperty(p)
 
 			schemaDef.Properties[k] = sp
 		}
